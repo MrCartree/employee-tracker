@@ -76,29 +76,44 @@ function addDepartment() {
 }
 
 function addRole() {
-    inquirer.prompt([
-        {
-            name: "roleTitle",
-            type: "input",
-            message: "What is the title of the role?"
-        },
-        {
-            name: "roleSalary",
-            type: "input",
-            message: "What is the base salary of the role?"
-        },
-        {
-            name: "roleDepartment",
-            type: "input",
-            message: "What is the department this role is a part of?"
-        }
-    ]).then(function (res) {
-        connection.query(`INSERT INTO role (title, salary, department_id) VALUES ('${res.roleTitle}', '${res.roleSalary}', '${res.roleDepartment}')`, function (err, res) {
-            if (err) throw err;
-            console.log("Role has been added!");
-            init();
+    connection.query("SELECT * FROM department", function (err, results) {
+        if (err) throw err;
+        inquirer.prompt([
+            {
+                name: "roleTitle",
+                type: "input",
+                message: "What is the title of the role?"
+            },
+            {
+                name: "roleSalary",
+                type: "input",
+                message: "What is the base salary of the role?"
+            },
+            {
+                name: "roleDepartment",
+                type: "rawlist",
+                message: "What is the department this role is a part of?",
+                choices: function () {
+                    let choiceArray = [];
+                    results.forEach((entry) => {
+                        let name = entry.name;
+                        let value = entry.id;
+                        choiceArray.push({ name, value });
+                        console.log(choiceArray)
+                    });
+                    return choiceArray;
+                },
+            }
+        ]).then(function (res) {
+            connection.query(`INSERT INTO role (title, salary, department_id) VALUES ('${res.roleTitle}', '${res.roleSalary}', '${res.roleDepartment}')`, function (err, res) {
+                if (err) throw err;
+                console.log("Role has been added!");
+                init();
+            })
         })
-    })
+
+    }
+    )
 }
 
 function addEmployee() {
@@ -134,18 +149,18 @@ function addEmployee() {
                 type: "input",
                 message: "Is the employee a manager?"
             }
-        ]).then(function(res) {
-            connection.query("INSERT INTO employee SET ?", 
-            {
-                first_name: res.employeeFirstName,
-                last_name: res.employeeLastName,
-                role_id: res.employeeRole
-            }, 
-            function(err, res) {
-                if (err) throw err;
-                console.log("Employee has been added!");
-                init();
-            });
+        ]).then(function (res) {
+            connection.query("INSERT INTO employee SET ?",
+                {
+                    first_name: res.employeeFirstName,
+                    last_name: res.employeeLastName,
+                    role_id: res.employeeRole
+                },
+                function (err, res) {
+                    if (err) throw err;
+                    console.log("Employee has been added!");
+                    init();
+                });
         });
 
     });
@@ -170,7 +185,12 @@ function viewRoles() {
 }
 
 function viewEmployees() {
-    connection.query("SELECT ")
+    connection.query("SELECT employee.id, first_name, last_name, role.title, department.name, salary FROM employee JOIN role ON role.id = employee.role_id JOIN department ON role.department_id = department.id", function (err, res) {
+        if (err) throw err;
+        let table = cTable.getTable(res);
+        console.log(table);
+        init();
+    })
 }
 
 function updateEmployee() {
