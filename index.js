@@ -92,8 +92,8 @@ function addRole() {
             type: "input",
             message: "What is the department this role is a part of?"
         }
-    ]).then(function(res) {
-        connection.query(`INSERT INTO role (title, salary, department_id) VALUES ('${res.roleTitle}', '${res.roleSalary}', '${res.roleDepartment}')`, function(err, res) {
+    ]).then(function (res) {
+        connection.query(`INSERT INTO role (title, salary, department_id) VALUES ('${res.roleTitle}', '${res.roleSalary}', '${res.roleDepartment}')`, function (err, res) {
             if (err) throw err;
             console.log("Role has been added!");
             init();
@@ -102,42 +102,75 @@ function addRole() {
 }
 
 function addEmployee() {
-    inquirer.prompt([
-        {
-            name: "employeeFirstName",
-            type: "input",
-            message: "What is the first name of the employee?"
-        },
-        {
-            name: "employeeLastName",
-            type: "input",
-            message: "What is the last name of the employee?"
-        },
-        {
-            name: "employeeRole",
-            type: ""
-        }
-    ])
-    init();
+    connection.query("SELECT * FROM role", function (err, results) {
+        if (err) throw err;
+        inquirer.prompt([
+            {
+                name: "employeeFirstName",
+                type: "input",
+                message: "What is the first name of the employee?"
+            },
+            {
+                name: "employeeLastName",
+                type: "input",
+                message: "What is the last name of the employee?"
+            },
+            {
+                name: "employeeRole",
+                type: "rawlist",
+                message: "What is the role ID of the employee?",
+                choices: function () {
+                    let choiceArray = [];
+                    results.forEach((entry) => {
+                        let name = entry.title;
+                        let value = entry.id;
+                        choiceArray.push({ name, value });
+                    });
+                    return choiceArray;
+                },
+            },
+            {
+                name: "managerID",
+                type: "input",
+                message: "Is the employee a manager?"
+            }
+        ]).then(function(res) {
+            connection.query("INSERT INTO employee SET ?", 
+            {
+                first_name: res.employeeFirstName,
+                last_name: res.employeeLastName,
+                role_id: res.employeeRole
+            }, 
+            function(err, res) {
+                if (err) throw err;
+                console.log("Employee has been added!");
+                init();
+            });
+        });
+
+    });
 }
 
 function viewDepartments() {
     connection.query("SELECT * FROM department", function (err, res) {
         if (err) throw err;
-        let table = cTable.getTable(res)
+        let table = cTable.getTable(res);
         console.log(table);
         init();
     })
 }
 
 function viewRoles() {
-    console.log("Hellow from inside viewRoles()")
-    init();
+    connection.query("SELECT role.id, title, salary, name FROM role JOIN department ON role.department_id = department.id", function (err, res) {
+        if (err) throw err;
+        let table = cTable.getTable(res);
+        console.log(table);
+        init();
+    })
 }
 
 function viewEmployees() {
-    console.log("Hellow from inside viewEmployees()")
-    init();
+    connection.query("SELECT ")
 }
 
 function updateEmployee() {
