@@ -1,6 +1,6 @@
 const mysql = require("mysql");
 const inquirer = require("inquirer");
-const consoleTable = require("console.table");
+const cTable = require("console.table");
 const password = require("./password");
 // const { inherits } = require("util");
 
@@ -9,7 +9,7 @@ const connection = mysql.createConnection({
     port: 3306,
     user: "root",
     password: password,
-    // database: "employeeDB"
+    database: "employeeDB"
 });
 
 connection.connect(function (err) {
@@ -62,8 +62,17 @@ function init() {
 }
 
 function addDepartment() {
-    console.log("Hello from inside addDepartment()")
-    init();
+    inquirer.prompt({
+        name: "department",
+        type: "input",
+        message: "What is the name of the department?"
+    }).then(function(res) {
+        connection.query(`INSERT INTO department (name) VALUES ('${res.department}')`, function(err, res) {
+            if (err) throw err;
+            console.log("Department has been added!");
+            init();
+        })
+    })
 }
 
 function addRole() {
@@ -77,8 +86,12 @@ function addEmployee() {
 }
 
 function viewDepartments() {
-    console.log("Hello from inside viewDepartments()")
-    init();
+    connection.query("SELECT * FROM department", function(err, res) {
+        if (err) throw err;
+        let table = cTable.getTable(res)
+        console.log(table);
+        init();
+    })
 }
 
 function viewRoles() {
