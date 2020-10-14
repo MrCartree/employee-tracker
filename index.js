@@ -51,7 +51,7 @@ function init() {
                     break;
 
                 case "Update Employee Role":
-                    updateEmployee();
+                    updateEmployeeRole();
                     break;
 
                 case "EXIT":
@@ -193,9 +193,54 @@ function viewEmployees() {
     })
 }
 
-function updateEmployee() {
-    console.log("Hello from inside updateEmployee()")
-    init();
+function updateEmployeeRole() {
+    connection.query("SELECT * FROM employee", function(err, res) {
+        if (err) throw err;
+        inquirer.prompt(
+            {
+                name: "updateEmployee",
+                type: "rawlist",
+                message: "Which employee role would you like to update?",
+                choices: function () {
+                    let choiceArray = [];
+                    res.forEach((entry) => {
+                        let name = ""
+                        name = (entry.first_name + " " + entry.last_name);
+                        let value = entry.id;
+                        choiceArray.push({ name, value });
+                    });
+                    return choiceArray;
+                }
+            }
+        ).then(function(answer) {
+            connection.query("SELECT * FROM role", function(err, res) {
+                if (err) throw err;
+                let whichEmployee = answer;
+                inquirer.prompt(
+                    {
+                        name: "updateRole",
+                        type: "rawlist",
+                        message: "What would you like their new role to be?",
+                        choices: function() {
+                            let choiceArray = [];
+                            res.forEach((entry) => {
+                                console.log(entry)
+                                let name = (entry.title);
+                                let value = entry.id;
+                                choiceArray.push({ name, value });
+                            });
+                            return choiceArray;
+                        }
+                    }
+                )
+            }).then(function(roleAnswer) {
+                connection.query("UPDATE employee SET role = ?",
+                {
+
+                })
+            })
+        });
+    })
 }
 
 function closeApp() {
