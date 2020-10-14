@@ -2,7 +2,6 @@ const mysql = require("mysql");
 const inquirer = require("inquirer");
 const cTable = require("console.table");
 const password = require("./password");
-// const { inherits } = require("util");
 
 const connection = mysql.createConnection({
     host: "localHost",
