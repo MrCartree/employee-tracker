@@ -215,7 +215,6 @@ function updateEmployeeRole() {
         ).then(function(answer) {
             connection.query("SELECT * FROM role", function(err, res) {
                 if (err) throw err;
-                let whichEmployee = answer;
                 inquirer.prompt(
                     {
                         name: "updateRole",
@@ -232,11 +231,17 @@ function updateEmployeeRole() {
                             return choiceArray;
                         }
                     }
-                )
-            }).then(function(roleAnswer) {
-                connection.query("UPDATE employee SET role = ?",
-                {
-
+                ).then(function(roleAnswer) {
+                    connection.query("UPDATE employee SET ? WHERE ?", [
+                        {
+                            role_id: roleAnswer.updateRole
+                        },
+                        {
+                            id: answer.updateEmployee
+                        }
+                    ])
+                    console.log("Employee role has been updated!")
+                    init();
                 })
             })
         });
