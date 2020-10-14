@@ -99,7 +99,6 @@ function addRole() {
                         let name = entry.name;
                         let value = entry.id;
                         choiceArray.push({ name, value });
-                        console.log(choiceArray)
                     });
                     return choiceArray;
                 },
@@ -119,50 +118,68 @@ function addRole() {
 function addEmployee() {
     connection.query("SELECT * FROM role", function (err, results) {
         if (err) throw err;
-        inquirer.prompt([
-            {
-                name: "employeeFirstName",
-                type: "input",
-                message: "What is the first name of the employee?"
-            },
-            {
-                name: "employeeLastName",
-                type: "input",
-                message: "What is the last name of the employee?"
-            },
-            {
-                name: "employeeRole",
-                type: "rawlist",
-                message: "What is the role ID of the employee?",
-                choices: function () {
-                    let choiceArray = [];
-                    results.forEach((entry) => {
-                        let name = entry.title;
-                        let value = entry.id;
-                        choiceArray.push({ name, value });
-                    });
-                    return choiceArray;
-                },
-            },
-            {
-                name: "managerID",
-                type: "input",
-                message: "Is the employee a manager?"
-            }
-        ]).then(function (res) {
-            connection.query("INSERT INTO employee SET ?",
+        connection.query("SELECT * FROM employee", function(error, employeeRes) {
+            if (error) throw error;
+            inquirer.prompt([
                 {
-                    first_name: res.employeeFirstName,
-                    last_name: res.employeeLastName,
-                    role_id: res.employeeRole
+                    name: "employeeFirstName",
+                    type: "input",
+                    message: "What is the first name of the employee?"
                 },
-                function (err, res) {
-                    if (err) throw err;
-                    console.log("Employee has been added!");
-                    init();
-                });
-        });
-
+                {
+                    name: "employeeLastName",
+                    type: "input",
+                    message: "What is the last name of the employee?"
+                },
+                {
+                    name: "employeeRole",
+                    type: "rawlist",
+                    message: "What is the role ID of the employee?",
+                    choices: function () {
+                        let choiceArray = [];
+                        results.forEach((entry) => {
+                            let name = entry.title;
+                            let value = entry.id;
+                            choiceArray.push({ name, value });
+                        });
+                        return choiceArray;
+                    },
+                },
+                {
+                    name: "managerID",
+                    type: "rawlist",
+                    message: "Who is the employees manager?",
+                    choices: function() {
+                        let choiceArray = [];
+                        employeeRes.forEach((entry) => {
+                            let name = (entry.first_name + " " + entry.last_name);
+                            let value = entry.id;
+                            choiceArray.push({ name, value })
+                        });
+                        let name = "None";
+                        let value = 0;
+                        choiceArray.push({ name, value })
+                        return choiceArray;
+                    }
+                }
+            ]).then(function (res) {
+                if (res.managerID === 0) {
+                    res.managerID = null;
+                }
+                connection.query("INSERT INTO employee SET ?",
+                    {
+                        first_name: res.employeeFirstName,
+                        last_name: res.employeeLastName,
+                        role_id: res.employeeRole,
+                        manager_id: res.managerID
+                    },
+                    function (err, res) {
+                        if (err) throw err;
+                        console.log("Employee has been added!");
+                        init();
+                    });
+            });
+        })
     });
 }
 
@@ -185,7 +202,7 @@ function viewRoles() {
 }
 
 function viewEmployees() {
-    connection.query("SELECT employee.id, first_name, last_name, role.title, department.name, salary FROM employee JOIN role ON role.id = employee.role_id JOIN department ON role.department_id = department.id", function (err, res) {
+    connection.query("SELECT employee.id, employee.first_name, employee.last_name, role.title, department.name, salary, CONCAT(manager.first_name, ' ', manager.last_name) AS 'manager_name' FROM employee LEFT JOIN role ON role.id = employee.role_id LEFT JOIN department ON role.department_id = department.id LEFT JOIN employee manager ON manager.id = employee.manager_id ORDER BY employee.id", function (err, res) {
         if (err) throw err;
         let table = cTable.getTable(res);
         console.log(table);
