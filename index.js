@@ -239,7 +239,6 @@ function updateEmployeeRole() {
                         choices: function() {
                             let choiceArray = [];
                             res.forEach((entry) => {
-                                console.log(entry)
                                 let name = (entry.title);
                                 let value = entry.id;
                                 choiceArray.push({ name, value });

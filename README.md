@@ -6,4 +6,6 @@ This application used [Express](https://www.npmjs.com/package/express), [Inquire
 
 This is not a deployed application.
 
+A video modeling the application can be found [here](https://drive.google.com/file/d/1pQOkYsPgtFN5GYE7HmIuYTcNnlwV9W4I/view)
+
 This application was authored by [Zach LaFleur](https://github.com/MrCartree)
